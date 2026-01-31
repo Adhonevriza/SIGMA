@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ΣIGMA - Integrated Fiscal Oversight System</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* =========================================
+           1. DESIGN SYSTEM & VARIABLES
+           ========================================= */
+        :root {
+            /* Palette Utama */
+            --bg-gradient-start: #9c0ebe;
+            --bg-gradient-end: #ffaa39;
+            
+            /* Header Gradients */
+            --header-orange-start: #ff7456;
+            --header-orange-end: #ffa771;
+            --header-gov-start: #1800ad;
+            --header-gov-end: #8926c5;
+
+            /* Footer/Nav */
+            --nav-start: #9c0ebe;
+            --nav-end: #ff59c0;
+            --nav-gov-start: #1800ad;
+            --nav-gov-end: #8926c5;
+
+            /* Actions */
+            --btn-success-start: #a1f529; --btn-success-end: #149a26;
+            --btn-warning-start: #f3e56c; --btn-warning-end: #eabc1b;
+            --btn-danger-start: #e5433b; --btn-danger-end: #ac231b;
+            --purple-accent: #9c0ebe;
+            --green-text: #008a3e;
+
+            /* Typography */
+            --font-serif: 'Cormorant Garamond', serif;
+            --font-sans: 'Montserrat', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px; /* Mobile Viewport Limit */
+            background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        /* --- SCREEN TRANSITIONS --- */
+        .screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            overflow-y: auto;
+            padding-bottom: 90px;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+        }
+        .screen.active {
+            display: block;
+            opacity: 1;
+            z-index: 10;
+        }
+
+        /* --- COMPONENT: HEADERS --- */
+        .curved-header {
+            background: linear-gradient(90deg, var(--header-orange-start), var(--header-orange-end));
+            padding: 30px 20px 50px 20px;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            color: white;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .header-simple {
+            padding: 15px 20px;
+            display: flex; align-items: center; gap: 10px;
+            margin-top: 10px;
+        }
+        .header-simple.title-center {
+            justify-content: space-between;
+            background: rgba(255,255,255,0.15);
+            margin-top: 0; padding-top: 40px;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            padding: 8px 15px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .search-bar input { border: none; outline: none; width: 100%; font-family: var(--font-sans); }
+        
+        /* Icons & Avatars */
+        .brand-logo { font-family: var(--font-serif); font-size: 24px; font-weight: bold; }
+        .user-info img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid white; }
+        .help-icon { color: white; font-size: 24px; background: rgba(255,255,255,0.5); border-radius: 50%; }
+
+        /* --- COMPONENT: CARDS --- */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            margin: 0 20px 20px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .card-overlap { margin-top: -40px; position: relative; z-index: 5; }
+
+        /* Stats Styles */
+        .stat-row { display: flex; justify-content: space-between; align-items: flex-start; }
+        .stat-value { font-size: 20px; font-weight: bold; color: var(--purple-accent); background: #eee; padding: 5px 15px; border-radius: 15px; }
+        .stat-value-large { font-size: 22px; font-weight: bold; color: #333; margin-top: 5px; }
+        .badge-alert { background: #ffeeba; color: #856404; font-size: 10px; padding: 5px 8px; border-radius: 10px; font-weight: bold; }
+        .divider { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
+
+        /* --- MENU GRID --- */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            padding: 10px 20px;
+        }
+        .menu-item {
+            text-align: center; color: white; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .icon-circle {
+            width: 65px; height: 65px; background: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: var(--purple-accent); margin-bottom: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        .menu-item:active .icon-circle { transform: scale(0.95); }
+        .menu-label { font-size: 11px; font-weight: 600; line-height: 1.2; }
+
+        /* --- DETAILED LIST ITEMS (Proyek/Aktivitas) --- */
+        .content-scroll { padding-bottom: 100px; }
+        
+        .section-label-bar {
+            text-align: center; color: white; font-weight: bold; margin: 15px 0;
+            position: relative; width: fit-content; margin-left: auto; margin-right: auto;
+        }
+        .section-label-bar::after {
+            content: ''; display: block; width: 80%; height: 4px; background: #f2df3a;
+            margin: 5px auto 0; border-radius: 2px;
+        }
+
+        .card-item {
+            background: white; border-radius: 15px; margin: 10px 15px;
+            overflow: hidden; padding: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .bg-green-light { background: #e1ffb6; }
+        
+        .card-header-date { font-size: 11px; font-weight: bold; color: var(--purple-accent); margin-bottom: 5px; }
+        .card-body { display: flex; gap: 10px; }
+        .card-image img { width: 90px; height: 90px; border-radius: 10px; object-fit: cover; }
+        .card-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        
+        .card-badge-purple { background: #4a00e0; color: white; font-size: 10px; padding: 3px 8px; border-radius: 8px; width: fit-content; margin-bottom: 3px;}
+        .info-row { display: flex; justify-content: space-between; font-size: 10px; color: #555; }
+        .text-green { color: var(--green-text); font-weight: bold; }
+        
+        .btn-detail {
+            background: linear-gradient(90deg, #4a00e0, #8e2de2);
+            border: none; color: white; font-size: 10px; padding: 6px;
+            border-radius: 15px; width: 100%; margin-top: 5px; cursor: pointer;
+        }
+
+        /* --- MAP COMPONENT --- */
+        .map-container {
+            height: 250px;
+            background: #ddd url('https://upload.wikimedia.org/wikipedia/commons/e/ec/Mapbox_map.png') center/cover;
+            margin: 0 15px; border-radius: 20px; border: 3px solid white;
+            position: relative;
+        }
+        .map-pin { position: absolute; color: #e5433b; font-size: 28px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+        /* --- REWARD PAGE --- */
+        .tabs-container { display: flex; justify-content: center; gap: 30px; margin-bottom: 10px; }
+        .tab { color: white; opacity: 0.6; padding-bottom: 5px; cursor: pointer; font-size: 14px; }
+        .tab.active { opacity: 1; font-weight: bold; border-bottom: 3px solid #f2df3a; }
+
+        .reward-card { 
+            background: white; margin: 0 15px; padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        .reward-card:first-child { border-top-left-radius: 15px; border-top-right-radius: 15px; margin-top: 10px;}
+        .reward-card:last-child { border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; border-bottom: none; }
+        
+        .reward-title-badge { background: linear-gradient(90deg, #4a00e0, #8e2de2); color: white; font-size: 10px; padding: 4px 10px; border-radius: 10px; display: inline-block; margin-bottom: 5px; }
+        .point-pill { background: #f2df3a; color: #333; font-weight: bold; padding: 4px 10px; border-radius: 10px; font-size: 11px; }
+
+        /* --- BOTTOM NAV & FLOATING BUTTONS --- */
+        .bottom-nav {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(90deg, var(--nav-start), var(--nav-end));
+            height: 70px; display: flex; justify-content: space-around; align-items: center;
+            border-top-left-radius: 25px; border-top-right-radius: 25px;
+            color: white; z-index: 100;
+        }
+        .nav-item { text-align: center; position: relative; opacity: 0.7; cursor: pointer; }
+        .nav-item.active { opacity: 1; transform: translateY(-2px); }
+        .badge-notif { position: absolute; top: -5px; right: 5px; background: white; color: purple; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        .fab-back {
+            position: absolute; top: 120px; left: 0;
+            background: rgba(255,255,255,0.25); color: white;
+            padding: 8px 15px;
+            border-top-right-radius: 15px; border-bottom-right-radius: 15px;
+            cursor: pointer; backdrop-filter: blur(5px);
+        }
+
+        /* --- LOGIN & GOV SPECIFIC --- */
+        #login-screen {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 30px; background: linear-gradient(135deg, #9c0ebe 0%, #1800ad 100%);
+        }
+        .sigma-logo-big { font-family: var(--font-serif); font-size: 100px; color: #f2df3a; margin-bottom: 10px; }
+        
+        .btn { border: none; padding: 12px; border-radius: 50px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; }
+        .btn-yellow { background: linear-gradient(to right, #f2df3a, #eabc1b); color: #773922; }
+        .btn-purple { background: linear-gradient(to right, #9c0ebe, #ff59c0); color: white; }
+        
+        /* Buttons for Audit */
+        .btn-audit-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .btn-green { background: linear-gradient(to right, var(--btn-success-start), var(--btn-success-end)); color: white; }
+        .btn-red { background: linear-gradient(to right, var(--btn-danger-start), var(--btn-danger-end)); color: white; }
+
+        /* Utility Helpers */
+        .text-purple { color: var(--purple-accent); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <div id="login-screen" class="screen active">
+        <div class="sigma-logo-big">Σ</div>
+        <h1 style="color: white; font-family: var(--font-serif); margin-bottom: 5px;">ΣIGMA</h1>
+        <p style="color: rgba(255,255,255,0.7); margin-bottom: 40px; text-align: center;">Integrated Fiscal Oversight System</p>
+        
+        <div class="card" style="width: 100%; background: white;">
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 12px; color: #555;">Email</label>
+                <input type="email" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 10px; margin-top: 5px;" placeholder="user@email.com">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 12px; color: #555;">Password</label>
+                <input type="password" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 10px; margin-top: 5px;" placeholder="••••••••">
+            </div>
+            
+            <p style="text-align: center; margin-bottom: 10px; font-size: 11px; color: #888;">Simulasi Login Sebagai:</p>
+            <button class="btn btn-yellow" onclick="login('citizen')">Masyarakat (Gen Z)</button>
+            <button class="btn btn-purple" onclick="login('gov')">Pemerintah (Auditor)</button>
+        </div>
+    </div>
+
+
+    <div id="citizen-dashboard" class="screen">
+        <div class="curved-header">
+            <div class="header-top" style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="brand-logo">ΣIGMA</div>
+                <div class="user-info"><img src="https://ui-avatars.com/api/?name=Evriza+R&background=f2df3a&color=fff" alt="User"></div>
+            </div>
+            <h2 style="font-size: 20px; margin-top: 10px;">Hai, Sobat Sigma! 👋</h2>
+            <p style="font-size: 14px; opacity: 0.9;">Yuk pantau dana desa kita.</p>
+        </div>
+
+        <div class="card card-overlap">
+            <div class="stat-row">
+                <div>
+                    <div class="stat-value">130 Poin</div>
+                    <div style="font-size: 10px; color: #666; margin-top: 2px;">Total Integrity Point</div>
+                </div>
+                <div class="badge-alert">2 Proyek di Sekitarmu ⚠️</div>
+            </div>
+            <hr class="divider">
+            <div style="text-align: center;">
+                <div style="font-size: 11px; color: #666;">Total Uang Negara Diselamatkan</div>
+                <div class="stat-value-large">Rp 10,72 Miliar</div>
+            </div>
+        </div>
+
+        <div class="menu-grid">
+            <div class="menu-item" onclick="navigateTo('page-proyek-sekitar')">
+                <div class="icon-circle"><i class="fa-solid fa-city"></i></div>
+                <span class="menu-label">Proyek<br>Sekitar</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('page-aktivitas')">
+                <div class="icon-circle"><i class="fa-solid fa-magnifying-glass"></i></div>
+                <span class="menu-label">Aktivitas<br>Partisipasi</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('page-reward')">
+                <div class="icon-circle"><i class="fa-solid fa-award"></i></div>
+                <span class="menu-label">Tukar<br>Reward</span>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active"><i class="fa-solid fa-house"></i><br><span style="font-size:9px">Home</span></div>
+            <div class="nav-item"><div class="badge-notif">2</div><i class="fa-solid fa-envelope"></i><br><span style="font-size:9px">Inbox</span></div>
+            <div class="nav-item"><i class="fa-solid fa-user"></i><br><span style="font-size:9px">Profil</span></div>
+            <div class="nav-item" onclick="navigateTo('login-screen')"><i class="fa-solid fa-right-from-bracket"></i><br><span style="font-size:9px">Keluar</span></div>
+        </div>
+    </div>
+
+    <div id="page-proyek-sekitar" class="screen">
+        <div class="header-simple">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass text-purple"></i>
+                <input type="text" placeholder="Cari proyek...">
+            </div>
+            <i class="fa-solid fa-circle-question help-icon"></i>
+        </div>
+
+        <div class="content-scroll">
+            <div class="section-label-bar">Peta Sebaran</div>
+            
+            <div class="map-container">
+                <i class="fa-solid fa-location-dot map-pin" style="top: 30%; left: 40%;"></i>
+                <i class="fa-solid fa-location-dot map-pin" style="top: 60%; left: 70%;"></i>
+            </div>
+
+            <div class="section-label-bar">Rincian Proyek</div>
+
+            <div class="card-item">
+                <div class="card-header-date">22 Apr 2026</div>
+                <div class="card-body">
+                    <div class="card-image"><img src="https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=150" alt="Jalan"></div>
+                    <div class="card-info">
+                        <div class="card-badge-purple">Perbaikan Jalan ITS</div>
+                        <div class="info-row">
+                            <span>Area: <b class="text-green">Keputih</b></span>
+                            <b style="color:#333">IP: 20</b>
+                        </div>
+                        <div style="font-size: 11px; margin-top: 4px;"><b>Rp 3.200.000</b> (Saved)</div>
+                        <button class="btn-detail">Lihat Detail</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fab-back" onclick="navigateTo('citizen-dashboard')"><i class="fa-solid fa-arrow-left"></i></div>
+    </div>
+
+    <div id="page-aktivitas" class="screen">
+        <div class="header-simple">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass text-purple"></i>
+                <input type="text" placeholder="Cari aktivitas...">
+            </div>
+        </div>
+
+        <div class="content-scroll">
+            <div class="section-label-bar">Aktivitas Saya</div>
+
+            <div class="card-item bg-green-light">
+                <div class="card-header-date text-purple">22 Apr 2026</div>
+                <div class="card-body">
+                    <div class="card-image"><img src="https://images.unsplash.com/photo-1584463635287-19d80d28d0c7?w=150" alt="Jalan"></div>
+                    <div class="card-info">
+                        <div class="card-badge-purple">Lapor Kerusakan</div>
+                        <div class="info-row">
+                            <span>Area: <b class="text-green">Keputih</b></span>
+                            <b>+50 Poin</b>
+                        </div>
+                        <div style="font-size: 10px; margin-top: 5px; color: #555;">Status: <b style="color: green;">Terverifikasi</b></div>
+                        <button class="btn-detail">Lihat Detail</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fab-back" onclick="navigateTo('citizen-dashboard')"><i class="fa-solid fa-arrow-left"></i></div>
+    </div>
+
+    <div id="page-reward" class="screen">
+        <div class="header-simple title-center">
+            <i class="fa-solid fa-arrow-left" style="color:white; cursor:pointer;" onclick="navigateTo('citizen-dashboard')"></i>
+            <span style="font-weight: bold; font-size: 18px; color: white;">Tukar Reward</span>
+            <i class="fa-solid fa-circle-question help-icon" style="font-size: 20px;"></i>
+        </div>
+
+        <div class="content-scroll" style="margin-top: 20px;">
+            <div class="tabs-container">
+                <div class="tab active" onclick="switchTab(this)">Katalog</div>
+                <div class="tab" onclick="switchTab(this)">Riwayat</div>
+            </div>
+
+            <div class="reward-card">
+                <div class="reward-title-badge">Voucher Pulsa 25rb</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+                    <div>Stok: 50</div>
+                    <div class="point-pill">250 Poin</div>
+                </div>
+            </div>
+            
+            <div class="reward-card">
+                <div class="reward-title-badge">Merchandise Kaos ITS</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+                    <div>Stok: 12</div>
+                    <div class="point-pill">500 Poin</div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; color: white;">
+                <p style="font-size: 12px;">Poin Anda:</p>
+                <h2 style="font-size: 32px; font-weight: bold;">130</h2>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="gov-dashboard" class="screen">
+        <div class="curved-header" style="background: linear-gradient(to right, var(--header-gov-start), var(--header-gov-end));">
+            <div class="header-top" style="display:flex; justify-content:space-between;">
+                <div class="brand-logo">ΣIGMA</div>
+                <div class="user-info"><img src="https://ui-avatars.com/api/?name=Admin+Gov&background=fff&color=1800ad" alt="Admin"></div>
+            </div>
+            <h2 style="font-size: 20px; margin-top: 10px;">Dashboard Auditor</h2>
+            <div style="background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 15px; font-size: 11px; display: inline-block; margin-top: 5px;">
+                Unit: Inspektorat Daerah
+            </div>
+        </div>
+
+        <div class="card card-overlap">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="text-align: center;">
+                    <div class="stat-value">71 T</div>
+                    <div style="font-size: 11px; color: #666; margin-top: 5px;">Dana Desa 2026</div>
+                </div>
+                <div style="text-align: center; border-left: 1px solid #eee;">
+                    <div class="stat-value" style="color: var(--btn-danger-start);">3 High</div>
+                    <div style="font-size: 11px; color: #666; margin-top: 5px;">Risiko Korupsi</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-label-bar">Manajemen Fiskal</div>
+        
+        <div class="menu-grid">
+            <div class="menu-item">
+                <div class="icon-circle" style="color: var(--nav-gov-start);"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                <span class="menu-label">Ajukan<br>Anggaran</span>
+            </div>
+            <div class="menu-item">
+                <div class="icon-circle" style="color: var(--nav-gov-start);"><i class="fa-solid fa-money-bill-transfer"></i></div>
+                <span class="menu-label">Pencairan<br>Dana</span>
+            </div>
+            <div class="menu-item">
+                <div class="icon-circle" style="color: var(--nav-gov-start);"><i class="fa-solid fa-folder-open"></i></div>
+                <span class="menu-label">Berkas<br>Saya</span>
+            </div>
+            <div class="menu-item" onclick="navigateTo('page-audit')">
+                <div class="icon-circle" style="color: var(--btn-danger-start);"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                <span class="menu-label">Tinjau<br>Proyek</span>
+            </div>
+            <div class="menu-item">
+                <div class="icon-circle" style="color: var(--btn-danger-start);"><i class="fa-solid fa-map-marked-alt"></i></div>
+                <span class="menu-label">Sebaran<br>Risiko</span>
+            </div>
+            <div class="menu-item">
+                <div class="icon-circle" style="color: var(--btn-danger-start);"><i class="fa-solid fa-users-viewfinder"></i></div>
+                <span class="menu-label">Laporan<br>Gen Z</span>
+            </div>
+        </div>
+
+        <div class="bottom-nav" style="background: linear-gradient(90deg, var(--nav-gov-start), var(--nav-gov-end));">
+            <div class="nav-item active"><i class="fa-solid fa-chart-pie"></i></div>
+            <div class="nav-item"><i class="fa-solid fa-file-signature"></i></div>
+            <div class="nav-item" onclick="navigateTo('login-screen')"><i class="fa-solid fa-right-from-bracket"></i></div>
+        </div>
+    </div>
+
+    <div id="page-audit" class="screen">
+        <div class="curved-header" style="background: linear-gradient(to right, var(--nav-gov-start), var(--nav-gov-end)); padding-bottom: 30px;">
+            <i class="fa-solid fa-arrow-left" style="color: white; font-size: 20px; cursor: pointer;" onclick="navigateTo('gov-dashboard')"></i>
+            <h3 style="text-align: center; margin-top: -25px; font-family: var(--font-serif);">Audit Lapangan</h3>
+        </div>
+
+        <div class="card card-overlap">
+            <div style="background: #e1ffb6; color: #008a3e; padding: 4px 10px; border-radius: 5px; font-size: 10px; font-weight: bold; display: inline-block; margin-bottom: 10px;">STATUS: DIAJUKAN</div>
+            <h3 style="margin-bottom: 5px; font-size: 16px;">Pembangunan Irigasi Desa A</h3>
+            <p style="color: #666; font-size: 12px;">Anggaran: Rp 150.000.000</p>
+            
+            <hr class="divider">
+            
+            <h5 style="margin-bottom: 10px; font-size: 12px;">Kelengkapan Dokumen:</h5>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                <span><i class="fa-solid fa-file-pdf" style="color: red;"></i> RAB_DesaA.pdf</span>
+                <i class="fa-solid fa-check-circle" style="color: green;"></i>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                <span><i class="fa-solid fa-file-excel" style="color: green;"></i> LPJ_Termin1.xlsx</span>
+                <i class="fa-solid fa-check-circle" style="color: green;"></i>
+            </div>
+
+            <div class="btn-audit-group">
+                <button class="btn btn-green" style="font-size: 12px; padding: 10px; border-radius: 10px;">Setujui</button>
+                <button class="btn btn-red" style="font-size: 12px; padding: 10px; border-radius: 10px;">Tolak</button>
+            </div>
+            <button class="btn btn-yellow" style="margin-top: 10px; font-size: 12px; padding: 10px; border-radius: 10px;">Minta Revisi</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- JAVASCRIPT LOGIC ---
+
+    // 1. Navigation Logic
+    function navigateTo(screenId) {
+        // Hide all screens
+        const screens = document.querySelectorAll('.screen');
+        screens.forEach(s => {
+            s.classList.remove('active');
+            s.scrollTop = 0; // Reset scroll
+        });
+
+        // Show target screen
+        const target = document.getElementById(screenId);
+        if (target) {
+            target.classList.add('active');
+        }
+    }
+
+    // 2. Login Simulation
+    function login(role) {
+        // Add simple loading effect if needed
+        if (role === 'citizen') {
+            navigateTo('citizen-dashboard');
+        } else {
+            navigateTo('gov-dashboard');
+        }
+    }
+
+    // 3. Tab Switcher (Reward Page)
+    function switchTab(element) {
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(t => t.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    console.log("ΣIGMA App Full Version Loaded");
+</script>
+
+</body>
+</html>
